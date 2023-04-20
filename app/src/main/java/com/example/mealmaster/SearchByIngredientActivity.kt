@@ -36,22 +36,26 @@ class SearchByIngredientActivity : AppCompatActivity(){
             }
 
             retrieveMealsButton.setOnClickListener{
-                val searchIngredient = searchIngredientText.text.toString()
+                var searchIngredient= searchIngredientText.text.toString()
+                searchIngredient=searchIngredient.trim()  // type nothing and press the button
+                if(searchIngredient!="") {
 
-                runBlocking {
-                    launch {
-                        withContext(Dispatchers.IO){
-                            val mealList: List<Meal> = searchMealRecipeByIngredient(searchIngredient)
-                            for (i in mealList ){
-                                Log.d("Meal Name ->",i.strMeal.toString())
-                            }
-                            val stringBuilderMealRecipes: StringBuilder = displayRecipeOnTextView(mealList)
+                    runBlocking {
+                        launch {
+                            withContext(Dispatchers.IO) {
+                                val mealList: List<Meal> = searchMealRecipeByIngredient(searchIngredient)
+                                for (i in mealList) {
+                                    Log.d("Meal Name ->", i.strMeal.toString())
+                                }
+                                val stringBuilderMealRecipes: StringBuilder =
+                                    displayRecipeOnTextView(mealList)
 
-                            runOnUiThread{
-                                if (stringBuilderMealRecipes.isNotEmpty()){
-                                    textViewMeals.text = stringBuilderMealRecipes.toString()
-                                }else{
-                                    textViewMeals.text = "Can't find any related meals"
+                                runOnUiThread {
+                                    if (stringBuilderMealRecipes.isNotEmpty()) {
+                                        textViewMeals.text = stringBuilderMealRecipes.toString()
+                                    } else {
+                                        textViewMeals.text = "Can't find any related meals"
+                                    }
                                 }
                             }
                         }
@@ -59,27 +63,26 @@ class SearchByIngredientActivity : AppCompatActivity(){
                 }
             }
 
-            saveMealsToDatabaseButton.setOnClickListener{
+            saveMealsToDatabaseButton.setOnClickListener {
                 val mealDao = db.mealDao()
+                var y = searchIngredientText.text.toString()
+                y = y.trim()
+                if (y != "") {
+                    runBlocking {
 
-                runBlocking {
+                        launch {
+                            withContext(Dispatchers.IO) {
 
-                    launch {
-                        withContext(Dispatchers.IO){
+                                val mealList: List<Meal> = searchMealRecipeByIngredient(y)
+                                mealDao.insertMealsList(mealList)
 
-                            val mealList : List<Meal> =searchMealRecipeByIngredient(searchIngredientText.text.toString())
-                            mealDao.insertMealsList(mealList)
-                            for (i in mealList){
-                                println(i.id)
+                                val users: List<Meal> = mealDao.getAllMeals()
+                                for (u in users) {
+                                    println("THIS IS YOUR MEAL--> ${u.id} ${u.strMeal} ${u.strArea} ")
+                                }
                             }
-                            val users: List<Meal> = mealDao.getAllMeals()
-                            for (u in users) {
-                                //tv.append("\n ${u.meal} ${u.area}")
-                                println("THIS IS YOUR MEAL\\ ${u.strMeal} ${u.strDrinkAlternate} ${u.id}")
 
-                            }
                         }
-
                     }
                 }
             }
